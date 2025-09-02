@@ -22,22 +22,45 @@ client = commands.Bot(command_prefix='.', intents=intents)
 async def on_ready():
     print(f'We have logged in as {client.user.id}')
 
-client.load_extension('cogs.help')
+extensions = ['cogs.help']
+for extension in extensions:
+    client.load_extension(extension)
 
+# cog status command
 @client.command()
 @commands.has_any_role(1411620168328810588)
 async def cog_status(ctx):
-    msg_author = ctx.author
-    await ctx.reply(msg_author.mention)
+    embed = disnake.Embed(
+        title="Cog Status",
+        description="yeet"
+        )
+    for ext in extensions:  
+        status = "loaded" if ext in client.extensions else "not loaded"
+        embed.add_field(name=ext, value=status)
 
-@cog_status.error
-async def cog_status_error(ctx, error):
+    msg_author = ctx.author
+    await ctx.reply(embed=embed)
+
+@client.event
+async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingAnyRole):
-        await ctx.reply(":x: **Missing permission to run command**")
+        missing_roles = []
+        for r in error.missing_roles:
+            role = ctx.guild.get_role(r) if isinstance(r, int) else r
+            missing_roles.append(role.name if role else str(r))
+
+        await ctx.reply(
+            f":x: You need one of the following roles to run this command: **{', '.join(missing_roles)}**"
+        )
         return
     error_msg = str(error)
-    file = disnake.File(fp=io.StringIO(error_msg), filename="error.txt")
-    await ctx.reply(f":warning: **Something went really wrong... If persistant please contact Management** :warning:", file=file)
+    error_file = disnake.File(fp=io.StringIO(error_msg), filename="error.txt")
+    await ctx.reply(
+        ":warning: **Something went really wrong... If persistent, please contact Management** :warning:",
+        file=error_file
+    )
     raise error
+
+
 
 client.run(TOKEN)
