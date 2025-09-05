@@ -12,10 +12,10 @@ class Help(commands.Cog):
 
       @commands.Cog.listener()
       async def on_ready(self):
-       print(f'Help Cog is online.')
+        print(f'Help Cog is online.')
 
       @commands.slash_command()
-      @commands.has_any_role(config["roles"]["ownership"])
+      @commands.has_any_role(*config["roles"]["executive+"])
       async def test(self, inter):
         await inter.response.send_message("hello", ephemeral=True)
 

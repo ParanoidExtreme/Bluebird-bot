@@ -30,17 +30,16 @@ client = commands.Bot(command_prefix='.', intents=intents)
 async def on_ready():
     print(f'We have logged in as {client.user.id}')
 
-extensions = ['cogs.help']
+extensions = ['cogs.help', 'cogs.design']
 for extension in extensions:
     client.load_extension(extension)
 
 # cog status command
 @client.command()
-@commands.has_any_role(config["roles"]["ownership"])
+@commands.has_any_role(config["roles"]["ownership-only"])
 async def cog_status(ctx):
     embed = disnake.Embed(
-        title="Cog Status",
-        description="yeet"
+        title="Cog Status"
         )
     for ext in extensions:  
         status = "loaded" if ext in client.extensions else "not loaded"
@@ -54,7 +53,8 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingAnyRole):
         await handle_missing_roles(ctx, error, is_inter=False)
         return
-
+    elif isinstance(error, commands.CommandNotFound):
+        return
     await handle_generic_error(ctx, error, is_inter=False)
     raise error
 
@@ -64,7 +64,8 @@ async def on_slash_command_error(inter, error):
     if isinstance(error, commands.MissingAnyRole):
         await handle_missing_roles(inter, error, is_inter=True)
         return
-
+    elif isinstance(error, commands.CommandNotFound):
+        return
     await handle_generic_error(inter, error, is_inter=True)
     raise error
 
